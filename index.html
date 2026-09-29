@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kai Korporaal — Portfolio</title>
+<meta name="description" content="Projects in data analysis, AI search, game development, and education research.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbfaf8;
+    --surface: #ffffff;
+    --text: #1d1d1f;
+    --muted: #5f6368;
+    --border: #e6e3de;
+    --accent: #2f6f5e;
+    --accent-soft: #e5f0ec;
+    --tag-bg: #f1efeb;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141516;
+      --surface: #1c1e20;
+      --text: #ececec;
+      --muted: #a3a8ad;
+      --border: #2e3134;
+      --accent: #7cc4ad;
+      --accent-soft: #1f3530;
+      --tag-bg: #262a2d;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141516;
+    --surface: #1c1e20;
+    --text: #ececec;
+    --muted: #a3a8ad;
+    --border: #2e3134;
+    --accent: #7cc4ad;
+    --accent-soft: #1f3530;
+    --tag-bg: #262a2d;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif;
+  }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+
+  header { padding: 72px 0 40px; }
+  h1 { font-size: clamp(2rem, 5vw, 2.75rem); line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .headline { font-size: 1.15rem; color: var(--muted); margin: 0 0 20px; max-width: 60ch; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border: 1px solid var(--border); border-radius: 999px;
+    background: var(--surface); color: var(--text); text-decoration: none; font-size: .9rem;
+  }
+  .links a:hover { border-color: var(--accent); color: var(--accent); }
+
+  h2.section {
+    font-size: .8rem; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--muted); margin: 32px 0 16px; font-weight: 600;
+  }
+
+  .project {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden;
+  }
+  .project .media { background: #000; border-bottom: 1px solid var(--border); }
+  .project .media img { display: block; width: 100%; height: auto; }
+  .project .body { padding: 24px; }
+  .project h3 { margin: 0 0 4px; font-size: 1.3rem; letter-spacing: -0.01em; }
+  .meta { color: var(--muted); font-size: .9rem; margin: 0 0 14px; }
+  .status {
+    display: inline-block; font-size: .75rem; font-weight: 600; padding: 2px 8px;
+    border-radius: 6px; background: var(--accent-soft); color: var(--accent); margin-left: 6px;
+    vertical-align: 2px;
+  }
+  .project p { margin: 0 0 12px; }
+  .project ul { margin: 0 0 14px; padding-left: 20px; }
+  .project li { margin-bottom: 6px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; }
+  .tags li {
+    font: 500 .78rem/1 "JetBrains Mono", ui-monospace, monospace;
+    background: var(--tag-bg); padding: 6px 9px; border-radius: 6px; margin: 0;
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; font-weight: 500; }
+  .note { font-size: .88rem; color: var(--muted); font-style: italic; }
+  .highlight {
+    border-left: 3px solid var(--accent); padding: 8px 14px; margin: 0 0 14px;
+    background: var(--accent-soft); border-radius: 0 8px 8px 0;
+  }
+
+  footer { color: var(--muted); font-size: .85rem; padding: 32px 0 56px; }
+
+  @media (max-width: 560px) {
+    header { padding: 48px 0 28px; }
+    .project .body { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Kai Korporaal</h1>
+    <p class="headline">UC Berkeley student working across data analysis, computer science, and education research.</p>
+    <nav class="links" aria-label="Contact">
+      <a href="https://github.com/kaikorporaal28">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2 class="section">Data &amp; Research</h2>
+
+    <article class="project">
+      <div class="body">
+        <h3>Cookie Cats: Does Moving the First Gate Affect Retention?</h3>
+        <p class="meta">A/B test analysis · 90,189 players</p>
+        <p>Analyzed an A/B test from the mobile puzzle game Cookie Cats that moved the first
+          progress gate from level 30 to level 40, to see whether it changed how many players came back.</p>
+        <p class="highlight"><strong>Finding:</strong> 7-day retention was significantly higher with the gate at level 30
+          (19.84% vs. 19.03%, p = 0.003), with no significant difference at day 1. The gap was largest among
+          players who played 40–99 rounds, the group most likely to have reached a gate.</p>
+        <ul>
+          <li>Validated the data first: no duplicate players, excluded 3,994 players who never played and one impossible outlier.</li>
+          <li>Used chi-square tests and a breakdown by rounds played to locate where the effect comes from.</li>
+          <li>Built an interactive dashboard and wrote up limitations, such as rounds only approximating levels reached.</li>
+        </ul>
+        <ul class="tags"><li>SQL</li><li>SQLite</li><li>Python</li><li>pandas</li><li>SciPy</li><li>ECharts</li></ul>
+        <div class="actions">
+          <a href="https://kaikorporaal28.github.io/cookie-cats/">Live dashboard →</a>
+          <a href="https://github.com/kaikorporaal28/cookie-cats">Code →</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="body">
+        <h3>Student Perceptions of Grading</h3>
+        <p class="meta">Undergraduate researcher · University teaching &amp; learning center · Poster presented at a 2026 research symposium</p>
+        <p>A mixed-methods study of how grading practices shape undergraduates' learning experiences. I led the
+          quantitative analysis of a pre-survey measuring students' beliefs about grading, fixed mindset, and
+          "brilliance" (whether academic success requires innate talent), which complemented the team's
+          qualitative focus-group coding.</p>
+        <ul>
+          <li>Visualized Likert-scale responses and checked each construct's reliability with Cronbach's alpha.</li>
+          <li>Ran a factor analysis to identify which grading-belief items best captured the underlying construct.</li>
+          <li>Compared constructs across demographic groups (STEM vs. non-STEM, first-generation status, income, gender).</li>
+        </ul>
+        <p class="highlight"><strong>Takeaways:</strong> students largely rejected fixed-mindset views of intelligence, yet
+          many still believed some people have an innate gift for academics. Many agreed grades reflect learning,
+          while doubting that the highest grades mean the most learning.</p>
+        <ul class="tags"><li>Python</li><li>pandas</li><li>Survey analysis</li><li>Reliability analysis</li><li>Factor analysis</li><li>Data visualization</li></ul>
+        <p class="note">Research data is confidential; methods and findings are summarized at the level presented publicly.</p>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="body">
+        <h3>Generative AI &amp; Student Learning: Rubric Analysis <span class="status">In progress</span></h3>
+        <p class="meta">Undergraduate researcher · University teaching &amp; learning center · Grant-funded study</p>
+        <p>Part of a multi-course study in which students could choose whether to use generative AI on
+          specific assignments. Instructors scored the submitted work against a shared rubric for critical
+          thinking and information literacy.</p>
+        <ul>
+          <li>Analyzing de-identified rubric scores across multiple courses and assignments.</li>
+          <li>Examining how a GenAI-permissive assignment policy relates to critical thinking and information literacy outcomes.</li>
+        </ul>
+        <ul class="tags"><li>Python</li><li>Google Colab</li><li>pandas</li><li>Data visualization</li></ul>
+        <p class="note">Ongoing research; results not yet available.</p>
+      </div>
+    </article>
+
+    <h2 class="section">Software &amp; AI</h2>
+
+    <article class="project">
+      <div class="media">
+        <img src="assets/world-building-demo.gif" width="960" height="384"
+             alt="Gameplay: the player explores a generated dungeon with limited line of sight, collects five flowers, and escapes through the door.">
+      </div>
+      <div class="body">
+        <h3>World Building Project</h3>
+        <p class="meta">Tile-based exploration game · Java</p>
+        <p>Every seed generates a new world of rooms and hallways. Explore with limited line of sight,
+          collect every flower to unlock the exit, and escape.</p>
+        <ul>
+          <li><strong>Procedural generation:</strong> random non-overlapping rooms, each joined to its nearest neighbor by a hallway so every room is reachable. The same seed always rebuilds the same world.</li>
+          <li><strong>Line of sight:</strong> tiles are drawn only if they're in range and the straight line to them isn't blocked by a wall.</li>
+          <li><strong>Compact saves:</strong> since the seed recreates the world, a save stores just the seed, the player's position, and which flowers were collected.</li>
+          <li>Tested by having a bot play 2,000 generated worlds to confirm every one is winnable and that saving and loading mid-game never changes the outcome.</li>
+        </ul>
+        <ul class="tags"><li>Java</li><li>Procedural generation</li><li>JUnit</li><li>Game design</li></ul>
+        <p class="note">Began as a data-structures course project and was rebuilt and extended independently. Code available on request.</p>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="body">
+        <h3>Pacman Search Agents</h3>
+        <p class="meta">Artificial intelligence course project · Python</p>
+        <p>Implemented search algorithms that let Pacman plan paths through mazes, then designed heuristics
+          for harder problems.</p>
+        <ul>
+          <li>Depth-first, breadth-first, uniform-cost, and A* graph search.</li>
+          <li>Modeled a "visit all four corners" problem and wrote a heuristic to guide A* through it.</li>
+          <li>Wrote a food-collection heuristic based on true maze distance to the farthest remaining food, and a greedy closest-dot agent.</li>
+        </ul>
+        <ul class="tags"><li>Python</li><li>Search algorithms</li><li>A*</li><li>Heuristic design</li></ul>
+        <p class="note">Course project; code not public per course policy.</p>
+      </div>
+    </article>
+  </main>
+
+  <footer>© 2026 Kai Korporaal</footer>
+</div>
+</body>
+</html>
