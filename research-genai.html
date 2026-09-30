@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generative AI &amp; Student Learning: Rubric Analysis — Kai Korporaal</title>
+<meta name="description" content="Rubric-score analysis methods and code: grouping criteria, summary tables, diverging charts, heatmaps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./">← All projects</a>
+  <header class="page-head">
+    <h1>Generative AI &amp; Student Learning: Rubric Analysis</h1>
+    <p class="headline">In progress. Analyzing rubric scores for critical thinking and information literacy across courses where students could choose whether to use generative AI. Python · pandas · matplotlib · Google Sheets API.</p>
+  </header>
+  <div class="sim-banner"><strong>About the charts:</strong> the research data is confidential, so every chart
+    on this page was produced by running my analysis code on <strong>simulated data</strong>. The charts show
+    what each analysis produces, not real results. File paths and survey or rubric wording are replaced
+    with generic labels.</div>
+  <main>
+<section class="section-block"><h2>1. Loading and grouping rubric criteria</h2><p>Ratings come from several courses whose rubrics word the same skill differently. Each criterion is assigned to a broader skill group by matching how its text starts, so punctuation and wording variants still land in the same group.</p>
+<pre><code class="language-python">import gspread
+from google.auth import default
+from google.colab import auth
+
+auth.authenticate_user()
+gc = gspread.authorize(default()[0])
+sheet = gc.open(&quot;&lt;de-identified ratings sheet&gt;&quot;)
+
+dfs = {}
+for ws in sheet.worksheets():
+    rows = ws.get_all_values()
+    dfs[ws.title] = (pd.DataFrame(rows[1:], columns=rows[0])
+                       .replace(&quot;&quot;, pd.NA).dropna(how=&quot;all&quot;))
+
+data = dfs[&quot;ratings&quot;].copy()
+data[&quot;RatingNum&quot;] = pd.to_numeric(data[&quot;RatingNum&quot;], errors=&quot;coerce&quot;)
+data[&quot;Criteria&quot;] = data[&quot;Criteria&quot;].str.strip()
+
+# criterion text prefix -&gt; skill group (real rubric wording omitted)
+GROUP_RULES = {
+    &quot;&lt;prefix of criterion A&gt;&quot;: &quot;Inquiry &amp; Exploration&quot;,
+    &quot;&lt;prefix of criterion B&gt;&quot;: &quot;Source Evaluation&quot;,
+    &quot;&lt;prefix of criterion C&gt;&quot;: &quot;Claim Development &amp; Synthesis&quot;,
+    # ...
+}
+
+def to_group(criterion):
+    for start, group in GROUP_RULES.items():
+        if criterion.startswith(start):
+            return group
+    return &quot;UNGROUPED&quot;   # flagged and reviewed by hand
+
+data[&quot;SkillGroup&quot;] = data[&quot;Criteria&quot;].map(to_group)</code></pre>
+</section>
+<section class="section-block"><h2>2. A reusable summary table</h2><p>One function produces counts and percentages at each rubric level, the share rated 3 or higher, and medians for any grouping: by skill group, by criterion, or by course. Missing ratings are counted separately rather than silently dropped.</p>
+<pre><code class="language-python">LEVELS = [1, 2, 3, 4]
+
+def summarize(df, by):
+    &quot;&quot;&quot;Counts and % at each rubric level, % rated 3+, median, missing. % use rated rows only.&quot;&quot;&quot;
+    g = df.groupby(by)
+    out = pd.DataFrame({&quot;Rows&quot;: g.size(), &quot;Rated (n)&quot;: g[&quot;RatingNum&quot;].count()})
+    out[&quot;Missing&quot;] = out[&quot;Rows&quot;] - out[&quot;Rated (n)&quot;]
+
+    counts = (df.dropna(subset=[&quot;RatingNum&quot;])
+                .pivot_table(index=by, columns=&quot;RatingNum&quot;, values=&quot;Criteria&quot;,
+                             aggfunc=&quot;count&quot;, fill_value=0)
+                .reindex(columns=LEVELS, fill_value=0))
+    counts.columns = [f&quot;n={int(c)}&quot; for c in counts.columns]
+    pct = counts.div(counts.sum(axis=1), axis=0)
+    pct.columns = [c.replace(&quot;n=&quot;, &quot;%=&quot;) for c in counts.columns]
+
+    out = out.join(counts).join(pct)
+    out[&quot;% rated 3+&quot;] = pct[&quot;%=3&quot;] + pct[&quot;%=4&quot;]
+    out[&quot;Median&quot;] = g[&quot;RatingNum&quot;].median()
+    return out.sort_values(&quot;% rated 3+&quot;, ascending=False)
+
+by_group  = summarize(data, &quot;SkillGroup&quot;)
+by_course = summarize(data, &quot;Course&quot;)</code></pre>
+</section>
+<section class="section-block"><h2>3. Diverging rubric chart</h2><p>Levels 1–2 extend left of center and levels 3–4 extend right, so the balance of weaker and stronger ratings for each skill is visible immediately. Groups are sorted by the share rated 3+.</p>
+<figure><img src="assets/research/genai-diverging.png" alt="Diverging bar chart of rubric ratings by skill group (simulated data)." loading="lazy"><figcaption>Rubric ratings by skill group (simulated data).</figcaption></figure>
+<pre><code class="language-python">LEVEL_COLORS = {1: &quot;#d19a00&quot;, 2: &quot;#f7dc6f&quot;, 3: &quot;#86b6ef&quot;, 4: &quot;#1c5cab&quot;}
+
+def diverging_bar(summary, title, min_label=0.08):
+    s = summary.iloc[::-1]                     # highest % 3+ on top
+    y = np.arange(len(s))
+    fig, ax = plt.subplots(figsize=(10, 0.55 * len(s) + 1.6))
+
+    left = np.zeros(len(s))                    # levels 2 then 1 grow leftward from 0
+    for lvl in [2, 1]:
+        w = s[f&quot;%={lvl}&quot;].values
+        ax.barh(y, -w, left=-left, color=LEVEL_COLORS[lvl], height=0.7)
+        for yi, wi, li in zip(y, w, left):
+            if wi &gt;= min_label:
+                ax.text(-(li + wi / 2), yi, f&quot;{wi:.0%}&quot;, ha=&quot;center&quot;, va=&quot;center&quot;)
+        left += w
+
+    right = np.zeros(len(s))                   # levels 3 then 4 grow rightward
+    for lvl in [3, 4]:
+        w = s[f&quot;%={lvl}&quot;].values
+        ax.barh(y, w, left=right, color=LEVEL_COLORS[lvl], height=0.7)
+        for yi, wi, ri in zip(y, w, right):
+            if wi &gt;= min_label:
+                ax.text(ri + wi / 2, yi, f&quot;{wi:.0%}&quot;, ha=&quot;center&quot;, va=&quot;center&quot;)
+        right += w
+
+    ax.axvline(0, color=&quot;#52514e&quot;)
+    ax.set_yticks(y)
+    ax.set_yticklabels([f&quot;{i}  (n={int(n)})&quot; for i, n in zip(s.index, s[&quot;Rated (n)&quot;])])
+    ax.set_xlim(-1, 1)
+    ax.set_xlabel(&quot;← % rated 1–2          % rated 3–4 →&quot;)
+    ax.set_title(title, loc=&quot;left&quot;)</code></pre>
+</section>
+<section class="section-block"><h2>4. Skill × course heatmap with small-sample masking</h2><p>Not every course assessed every skill, and some cells have only a few ratings. Cells with fewer than five ratings are greyed out instead of colored, so a single rating can't look like a meaningful percentage.</p>
+<figure><img src="assets/research/genai-heatmap.png" alt="Heatmap of percent rated 3+ by skill group and course (simulated data)." loading="lazy"><figcaption>Share of ratings at 3 or higher by skill group and course (simulated data).</figcaption></figure>
+<pre><code class="language-python">MIN_N = 5
+rated = data.dropna(subset=[&quot;RatingNum&quot;])
+n_tab = rated.pivot_table(index=&quot;SkillGroup&quot;, columns=&quot;Course&quot;,
+                          values=&quot;RatingNum&quot;, aggfunc=&quot;count&quot;)
+p_tab = (rated.assign(ok=rated[&quot;RatingNum&quot;] &gt;= 3)
+              .pivot_table(index=&quot;SkillGroup&quot;, columns=&quot;Course&quot;, values=&quot;ok&quot;, aggfunc=&quot;mean&quot;))
+shown = p_tab.where(n_tab &gt;= MIN_N)           # hide percentages with too few ratings
+
+fig, ax = plt.subplots()
+ax.imshow(np.where(n_tab.notna(), 1, np.nan),  # grey layer = assessed but small n
+          cmap=ListedColormap([&quot;#f0efec&quot;]), aspect=&quot;auto&quot;)
+im = ax.imshow(shown.values.astype(float), cmap=&quot;YlGnBu&quot;, vmin=0, vmax=1, aspect=&quot;auto&quot;)
+
+for i in range(p_tab.shape[0]):
+    for j in range(p_tab.shape[1]):
+        n = n_tab.iat[i, j]
+        if pd.isna(n):
+            continue                              # blank = skill not assessed in course
+        big = n &gt;= MIN_N
+        ax.text(j, i, f&quot;{p_tab.iat[i, j]:.0%}\nn={int(n)}&quot; if big else f&quot;n={int(n)}&quot;,
+                ha=&quot;center&quot;, va=&quot;center&quot;, fontsize=8)
+fig.colorbar(im, ax=ax, label=&quot;% rated 3+&quot;)</code></pre>
+</section>
+  </main>
+  <footer><a href="./">← All projects</a></footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

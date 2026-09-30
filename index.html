@@ -8,106 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #fbfaf8;
-    --surface: #ffffff;
-    --text: #1d1d1f;
-    --muted: #5f6368;
-    --border: #e6e3de;
-    --accent: #2f6f5e;
-    --accent-soft: #e5f0ec;
-    --tag-bg: #f1efeb;
-    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #141516;
-      --surface: #1c1e20;
-      --text: #ececec;
-      --muted: #a3a8ad;
-      --border: #2e3134;
-      --accent: #7cc4ad;
-      --accent-soft: #1f3530;
-      --tag-bg: #262a2d;
-      --shadow: none;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #141516;
-    --surface: #1c1e20;
-    --text: #ececec;
-    --muted: #a3a8ad;
-    --border: #2e3134;
-    --accent: #7cc4ad;
-    --accent-soft: #1f3530;
-    --tag-bg: #262a2d;
-    --shadow: none;
-  }
-
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif;
-  }
-  a { color: var(--accent); text-underline-offset: 3px; }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
-
-  header { padding: 72px 0 40px; }
-  h1 { font-size: clamp(2rem, 5vw, 2.75rem); line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.02em; }
-  .headline { font-size: 1.15rem; color: var(--muted); margin: 0 0 20px; max-width: 60ch; }
-  .links { display: flex; flex-wrap: wrap; gap: 10px; }
-  .links a {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 14px; border: 1px solid var(--border); border-radius: 999px;
-    background: var(--surface); color: var(--text); text-decoration: none; font-size: .9rem;
-  }
-  .links a:hover { border-color: var(--accent); color: var(--accent); }
-
-  h2.section {
-    font-size: .8rem; text-transform: uppercase; letter-spacing: .12em;
-    color: var(--muted); margin: 32px 0 16px; font-weight: 600;
-  }
-
-  .project {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-    box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden;
-  }
-  .project .media { background: #000; border-bottom: 1px solid var(--border); }
-  .project .media img { display: block; width: 100%; height: auto; }
-  .project .body { padding: 24px; }
-  .project h3 { margin: 0 0 4px; font-size: 1.3rem; letter-spacing: -0.01em; }
-  .meta { color: var(--muted); font-size: .9rem; margin: 0 0 14px; }
-  .status {
-    display: inline-block; font-size: .75rem; font-weight: 600; padding: 2px 8px;
-    border-radius: 6px; background: var(--accent-soft); color: var(--accent); margin-left: 6px;
-    vertical-align: 2px;
-  }
-  .project p { margin: 0 0 12px; }
-  .project ul { margin: 0 0 14px; padding-left: 20px; }
-  .project li { margin-bottom: 6px; }
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; }
-  .tags li {
-    font: 500 .78rem/1 "JetBrains Mono", ui-monospace, monospace;
-    background: var(--tag-bg); padding: 6px 9px; border-radius: 6px; margin: 0;
-  }
-  .actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; font-weight: 500; }
-  .note { font-size: .88rem; color: var(--muted); font-style: italic; }
-  .highlight {
-    border-left: 3px solid var(--accent); padding: 8px 14px; margin: 0 0 14px;
-    background: var(--accent-soft); border-radius: 0 8px 8px 0;
-  }
-
-  footer { color: var(--muted); font-size: .85rem; padding: 32px 0 56px; }
-
-  @media (max-width: 560px) {
-    header { padding: 48px 0 28px; }
-    .project .body { padding: 18px; }
-  }
-</style>
+<link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <div class="wrap">
@@ -162,6 +63,7 @@
           many still believed some people have an innate gift for academics. Many agreed grades reflect learning,
           while doubting that the highest grades mean the most learning.</p>
         <ul class="tags"><li>Python</li><li>pandas</li><li>Survey analysis</li><li>Reliability analysis</li><li>Factor analysis</li><li>Data visualization</li></ul>
+        <div class="actions"><a href="research-grading.html">Methods, code &amp; example charts →</a></div>
         <p class="note">Research data is confidential; methods and findings are summarized at the level presented publicly.</p>
       </div>
     </article>
@@ -178,6 +80,7 @@
           <li>Examining how a GenAI-permissive assignment policy relates to critical thinking and information literacy outcomes.</li>
         </ul>
         <ul class="tags"><li>Python</li><li>Google Colab</li><li>pandas</li><li>Data visualization</li></ul>
+        <div class="actions"><a href="research-genai.html">Methods, code &amp; example charts →</a></div>
         <p class="note">Ongoing research; results not yet available.</p>
       </div>
     </article>

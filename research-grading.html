@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Perceptions of Grading — Kai Korporaal</title>
+<meta name="description" content="Survey analysis methods and code: Likert encoding, reliability, factor analysis, group comparisons.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./">← All projects</a>
+  <header class="page-head">
+    <h1>Student Perceptions of Grading</h1>
+    <p class="headline">Quantitative survey analysis for a mixed-methods study of how grading practices shape undergraduates' learning. Python · pandas · matplotlib · seaborn · factor_analyzer.</p>
+  </header>
+  <div class="sim-banner"><strong>About the charts:</strong> the research data is confidential, so every chart
+    on this page was produced by running my analysis code on <strong>simulated data</strong>. The charts show
+    what each analysis produces, not real results. File paths and survey or rubric wording are replaced
+    with generic labels.</div>
+  <main>
+<section class="section-block"><h2>1. Encoding Likert responses</h2><p>Responses were mapped to 1–5. One item in the “brilliance” construct is worded in the opposite direction (effort leads to success), so it was reverse-coded so that a higher score always means a stronger belief in innate talent.</p>
+<pre><code class="language-python">likert_mapping = {
+    &quot;Strongly agree&quot;: 5, &quot;Slightly agree&quot;: 4, &quot;Neutral&quot;: 3,
+    &quot;Slightly disagree&quot;: 2, &quot;Strongly disagree&quot;: 1,
+}
+likert_mapping_reverse = {label: 6 - score for label, score in likert_mapping.items()}
+
+df_nums = df.replace(likert_mapping)
+df_nums[reverse_col] = df[reverse_col].replace(likert_mapping_reverse)
+df_nums = df_nums.infer_objects()</code></pre>
+</section>
+<section class="section-block"><h2>2. Visualizing the distributions</h2><p>A stacked horizontal bar per survey item, in a diverging blue-to-gold palette, makes it easy to compare agreement across items at a glance.</p>
+<figure><img src="assets/research/sgp-likert.png" alt="Stacked Likert bar chart for five grading-belief items (simulated data)." loading="lazy"><figcaption>Stacked Likert bars for the five grading-belief items (simulated data).</figcaption></figure>
+<pre><code class="language-python">def plot_likert_bars(df, title=&quot;Likert Responses&quot;, wrap_width=45):
+    categories = [&quot;Strongly disagree&quot;, &quot;Slightly disagree&quot;, &quot;Neutral&quot;,
+                  &quot;Slightly agree&quot;, &quot;Strongly agree&quot;]
+    colors = [&quot;#002676&quot;, &quot;#9FD1FF&quot;, &quot;#F2F2F2&quot;, &quot;#FFE88D&quot;, &quot;#FDB515&quot;]
+
+    # % of respondents choosing each response, per item
+    pct = pd.DataFrame({
+        col: df[col].value_counts(normalize=True).reindex(categories).fillna(0) * 100
+        for col in df.columns
+    }).T
+
+    fig, ax = plt.subplots(figsize=(11, max(3, 0.7 * len(pct))))
+    left = np.zeros(len(pct))
+    y = np.arange(len(pct))
+    for cat, color in zip(categories, colors):
+        widths = pct[cat].to_numpy()
+        ax.barh(y, widths, left=left, color=color, height=0.72, label=cat)
+        for i, w in enumerate(widths):
+            if w &gt;= 4:  # only label segments wide enough to read
+                ax.text(left[i] + w / 2, y[i], f&quot;{w:.0f}%&quot;, ha=&quot;center&quot;, va=&quot;center&quot;)
+        left += widths
+
+    ax.set_yticks(y)
+    ax.set_yticklabels([&quot;\n&quot;.join(textwrap.wrap(l, wrap_width)) for l in pct.index])
+    ax.invert_yaxis()
+    ax.set_xlim(0, 100)
+    ax.set_title(title)
+    ax.legend(title=&quot;Response&quot;, bbox_to_anchor=(1.02, 1), loc=&quot;upper left&quot;, frameon=False)</code></pre>
+</section>
+<section class="section-block"><h2>3. Do the items measure one idea? Reliability and factor analysis</h2><p>Each construct (grading beliefs, fixed mindset, brilliance) is measured by several items. I computed Cronbach's alpha to test whether a construct's items hang together, re-ran it with individual items dropped to find ones behaving differently, and checked pairwise correlations. For the five-item grading construct I also fit a one-factor confirmatory factor analysis to see which items best capture the underlying belief.</p>
+<pre><code class="language-python">def cronbach_alpha(df):
+    k = df.shape[1]                                   # number of items
+    item_variances = df.var(axis=0, ddof=1)           # variance of each item
+    total_score_variance = df.sum(axis=1).var(ddof=1) # variance of summed score
+    return (k / (k - 1)) * (1 - item_variances.sum() / total_score_variance)
+
+for name, cols in constructs.items():
+    print(f&quot;{name}: alpha = {cronbach_alpha(df_nums[cols]):.3f}&quot;)
+
+# does one item behave differently? drop it and recompute
+subset = [c for c in brilliance_cols if c != innate_item]
+print(cronbach_alpha(df_nums[subset]))</code></pre>
+<pre><code class="language-python">from factor_analyzer import (ConfirmatoryFactorAnalyzer,
+                             ModelSpecificationParser)
+
+# One latent &quot;grading beliefs&quot; factor behind the five items
+# (a 3-item construct gives a saturated model with no df to test fit)
+model = {&quot;GradingBeliefs&quot;: grading_cols}
+spec = ModelSpecificationParser.parse_model_specification_from_dict(
+    df_nums, model)
+
+cfa = ConfirmatoryFactorAnalyzer(spec, disp=False)
+cfa.fit(df_nums[grading_cols].dropna().values)
+
+loadings = pd.DataFrame(cfa.loadings_, index=grading_cols,
+                        columns=[&quot;GradingBeliefs&quot;])
+display(loadings.round(3))</code></pre>
+<figure class="narrow"><img src="assets/research/sgp-correlation.png" alt="Correlation heatmap of five grading-belief items (simulated data)." loading="lazy"><figcaption>Pairwise correlations between grading-belief items (simulated data).</figcaption></figure>
+</section>
+<section class="section-block"><h2>4. Comparing groups</h2><p>Each respondent's construct score is the mean of its items. Joining those scores to demographic flags lets the same function draw side-by-side boxplots for any comparison: gender, first-generation status, income, or STEM vs. non-STEM major.</p>
+<figure><img src="assets/research/sgp-boxplots.png" alt="Boxplots of construct scores for two demographic groups (simulated data)." loading="lazy"><figcaption>Construct scores for two generic demographic groups (simulated data).</figcaption></figure>
+<pre><code class="language-python">df_averages = pd.DataFrame({
+    &quot;gradingbeliefs_mean&quot;: df_nums[grading_cols].mean(axis=1),
+    &quot;brilliance_mean&quot;:     df_nums[brilliance_cols].mean(axis=1),
+    &quot;fixedmindset_mean&quot;:   df_nums[fixed_cols].mean(axis=1),
+}, index=df[&quot;Pseudonym&quot;])
+
+def plot_average_boxplots_by_group(df_averages, demo, group_cols, categories, title,
+                                   category_labels=None):
+    frames = []
+    for label, col in group_cols.items():
+        merged = df_averages.reset_index().merge(demo[[&quot;Pseudonym&quot;, col]],
+                                                  on=&quot;Pseudonym&quot;, how=&quot;left&quot;)
+        group_df = merged[merged[col] == True][[&quot;Pseudonym&quot;] + categories]
+        frames.append(group_df.assign(Group=label))
+
+    # long format: one row per (respondent, construct)
+    plot_df = pd.concat(frames).melt(id_vars=[&quot;Pseudonym&quot;, &quot;Group&quot;], value_vars=categories,
+                                     var_name=&quot;Category&quot;, value_name=&quot;Average Response&quot;)
+    sns.boxplot(data=plot_df, x=&quot;Category&quot;, y=&quot;Average Response&quot;, hue=&quot;Group&quot;, width=0.6)
+    plt.xticks(range(len(categories)), category_labels or categories)
+    plt.title(title)
+
+# the same function handles every comparison
+demo[&quot;Major_Type&quot;] = demo[&quot;Major1&quot;].apply(lambda m: &quot;STEM&quot; if m in STEM_MAJORS else &quot;Non-STEM&quot;)</code></pre>
+</section>
+  </main>
+  <footer><a href="./">← All projects</a></footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
